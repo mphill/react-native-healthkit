@@ -1,103 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Alert, StyleSheet } from 'react-native';
 import {
-  requestAuthorization,
   getMostRecentWorkout,
-  WorkoutEffortUtils,
-  type WorkoutProxy,
-} from '@kingstinct/react-native-healthkit';
+  requestAuthorization,
+} from '@kingstinct/react-native-healthkit'
+import type { WorkoutProxy } from '@kingstinct/react-native-healthkit/specs/WorkoutProxy.nitro'
+import {
+  getWorkoutEffortDescription,
+  getWorkoutEffortScore,
+  isValidWorkoutEffortScore,
+  setWorkoutEffortScore,
+} from '@kingstinct/react-native-healthkit/utils/workoutEffort'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { Alert, Button, StyleSheet, Text, View } from 'react-native'
 
 /**
  * Example component demonstrating workout effort score functionality
  * Requires iOS 18+ to function properly
  */
 export const WorkoutEffortExample: React.FC = () => {
-  const [workout, setWorkout] = useState<WorkoutProxy | null>(null);
-  const [effortScore, setEffortScore] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [hasPermissions, setHasPermissions] = useState(false);
+  const [workout, setWorkout] = useState<WorkoutProxy | null>(null)
+  const [effortScore, setEffortScore] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [hasPermissions, setHasPermissions] = useState(false)
 
   // Request permissions on component mount
   useEffect(() => {
     const requestPermissions = async () => {
       try {
         await requestAuthorization(
-          ['HKQuantityTypeIdentifierWorkoutEffortScore', 'HKWorkoutTypeIdentifier'],
-          ['HKQuantityTypeIdentifierWorkoutEffortScore']
-        );
-        setHasPermissions(true);
+          [
+            'HKQuantityTypeIdentifierWorkoutEffortScore',
+            'HKWorkoutTypeIdentifier',
+          ],
+          ['HKQuantityTypeIdentifierWorkoutEffortScore'],
+        )
+        setHasPermissions(true)
       } catch (error) {
-        console.error('Failed to request permissions:', error);
-        Alert.alert('Permission Error', 'Failed to request HealthKit permissions');
+        console.error('Failed to request permissions:', error)
+        Alert.alert(
+          'Permission Error',
+          'Failed to request HealthKit permissions',
+        )
       }
-    };
+    }
 
-    requestPermissions();
-  }, []);
+    requestPermissions()
+  }, [])
 
   // Load the most recent workout
   const loadMostRecentWorkout = async () => {
     if (!hasPermissions) {
-      Alert.alert('Error', 'HealthKit permissions not granted');
-      return;
+      Alert.alert('Error', 'HealthKit permissions not granted')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      const recentWorkout = await getMostRecentWorkout();
+      const recentWorkout = await getMostRecentWorkout({
+        energyUnit: 'kcal', // Optional
+        distanceUnit: 'mi', // Optional
+      })
       if (recentWorkout) {
-        setWorkout(recentWorkout);
-        
+        setWorkout(recentWorkout)
+
         // Load existing effort score
-        const existingScore = await WorkoutEffortUtils.getWorkoutEffortScore(recentWorkout);
-        setEffortScore(existingScore);
+        const existingScore = await getWorkoutEffortScore(recentWorkout)
+        setEffortScore(existingScore)
       } else {
-        Alert.alert('No Workouts', 'No workouts found in HealthKit');
+        Alert.alert('No Workouts', 'No workouts found in HealthKit')
       }
     } catch (error) {
-      console.error('Failed to load workout:', error);
-      Alert.alert('Error', 'Failed to load workout data');
+      console.error('Failed to load workout:', error)
+      Alert.alert('Error', 'Failed to load workout data')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Set effort score for the current workout
   const setWorkoutEffort = async (score: number) => {
     if (!workout) {
-      Alert.alert('Error', 'No workout selected');
-      return;
+      Alert.alert('Error', 'No workout selected')
+      return
     }
 
-    if (!WorkoutEffortUtils.isValidWorkoutEffortScore(score)) {
-      Alert.alert('Invalid Score', 'Effort score must be between 1 and 10');
-      return;
+    if (!isValidWorkoutEffortScore(score)) {
+      Alert.alert('Invalid Score', 'Effort score must be between 1 and 10')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await WorkoutEffortUtils.setWorkoutEffortScore(workout, score);
-      setEffortScore(score);
+      await setWorkoutEffortScore(workout, score)
+      setEffortScore(score)
       Alert.alert(
-        'Success', 
-        `Workout effort set to ${score} (${WorkoutEffortUtils.getWorkoutEffortDescription(score as any)})`
-      );
+        'Success',
+        `Workout effort set to ${score} (${getWorkoutEffortDescription(score as any)})`,
+      )
     } catch (error) {
-      console.error('Failed to set effort score:', error);
-      if (error instanceof Error && error.message.includes('iOS 18.0 and later')) {
-        Alert.alert('iOS Version', 'Workout effort scores require iOS 18 or later');
+      console.error('Failed to set effort score:', error)
+      if (
+        error instanceof Error &&
+        error.message.includes('iOS 18.0 and later')
+      ) {
+        Alert.alert(
+          'iOS Version',
+          'Workout effort scores require iOS 18 or later',
+        )
       } else {
-        Alert.alert('Error', 'Failed to set workout effort score');
+        Alert.alert('Error', 'Failed to set workout effort score')
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Render effort score buttons
   const renderEffortButtons = () => {
-    const scores = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    
+    const scores = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
     return (
       <View style={styles.buttonGrid}>
         {scores.map((score) => (
@@ -110,17 +131,15 @@ export const WorkoutEffortExample: React.FC = () => {
           />
         ))}
       </View>
-    );
-  };
+    )
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Workout Effort Score Example</Text>
-      
+
       {!hasPermissions && (
-        <Text style={styles.warning}>
-          Requesting HealthKit permissions...
-        </Text>
+        <Text style={styles.warning}>Requesting HealthKit permissions...</Text>
       )}
 
       <Button
@@ -133,13 +152,17 @@ export const WorkoutEffortExample: React.FC = () => {
         <View style={styles.workoutInfo}>
           <Text style={styles.subtitle}>Current Workout:</Text>
           <Text>Activity: {workout.workoutActivityType}</Text>
-          <Text>Duration: {Math.round(workout.duration.quantity)} {workout.duration.unit}</Text>
+          <Text>
+            Duration: {Math.round(workout.duration.quantity)}{' '}
+            {workout.duration.unit}
+          </Text>
           <Text>Start: {new Date(workout.startDate).toLocaleString()}</Text>
-          
+
           {effortScore !== null ? (
             <View style={styles.effortInfo}>
               <Text style={styles.effortText}>
-                Current Effort Score: {effortScore} ({WorkoutEffortUtils.getWorkoutEffortDescription(effortScore as any)})
+                Current Effort Score: {effortScore} (
+                {getWorkoutEffortDescription(effortScore as any)})
               </Text>
             </View>
           ) : (
@@ -160,8 +183,8 @@ export const WorkoutEffortExample: React.FC = () => {
 
       {loading && <Text style={styles.loading}>Loading...</Text>}
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -226,6 +249,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontStyle: 'italic',
   },
-});
+})
 
-export default WorkoutEffortExample;
+export default WorkoutEffortExample
