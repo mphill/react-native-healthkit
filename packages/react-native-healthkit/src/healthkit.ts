@@ -421,6 +421,13 @@ const HealthkitModule = {
   getDateOfBirthAsync,
   getFitzpatrickSkinTypeAsync,
   getWheelchairUseAsync,
+  WorkoutEffortUtils: {
+    isValidWorkoutEffortScore: (score: number): score is any => false,
+    getWorkoutEffortScore: (workout: any) => Promise.resolve(null),
+    setWorkoutEffortScore: (workout: any, score: number) => Promise.resolve(false),
+    getWorkoutEffortDescription: (score: any) => 'Not available on this platform',
+    isWorkoutEffortSupported: () => false,
+  },
 } as Omit<typeof ReactNativeHealthkit, 'default'>
 
 export default {

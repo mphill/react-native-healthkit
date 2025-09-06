@@ -651,6 +651,12 @@ func allQuantityTypeIdentifiers() -> [String] {
         .uvExposure
         // Add more identifiers as needed for your iOS version
     ]
+
+    // Add iOS 18+ identifiers conditionally
+    if #available(iOS 18, *) {
+        allIdentifiers.append(.workoutEffortScore)
+        allIdentifiers.append(.estimatedWorkoutEffortScore)
+    }
     let supported = allIdentifiers.compactMap { identifier in
         HKObjectType.quantityType(forIdentifier: identifier) != nil ? identifier.rawValue : nil
     }

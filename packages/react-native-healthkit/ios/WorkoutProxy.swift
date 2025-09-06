@@ -193,6 +193,57 @@ func saveWorkoutRouteInternal(
   }
 }
 
+@available(iOS 18.0, *)
+func getWorkoutEffortScoreInternal(workout: HKWorkout) async throws -> Double? {
+  let sampleType = HKQuantityType(.workoutEffortScore)
+  let predicate = HKQuery.predicateForWorkoutEffortSamplesRelated(workout: workout, activity: nil)
+  let descriptor = HKSampleQueryDescriptor(predicates: [
+    HKSamplePredicate.sample(type: sampleType, predicate: predicate)
+  ], sortDescriptors: [])
+
+  let samples = try await descriptor.result(for: store)
+
+  if let lastSample = samples.last as? HKQuantitySample {
+    let doubleValue = lastSample.quantity.doubleValue(for: .appleEffortScore())
+    return doubleValue
+  } else {
+    return nil
+  }
+}
+
+@available(iOS 18.0, *)
+func setWorkoutEffortScoreInternal(workout: HKWorkout, score: Double) async throws -> Bool {
+  // Validate score is between 1 and 10
+  guard score >= 1.0 && score <= 10.0 else {
+    throw RuntimeError.error(withMessage: "[react-native-healthkit] Workout effort score must be between 1 and 10, got: \(score)")
+  }
+
+  let sampleType = HKQuantityType(.workoutEffortScore)
+  let predicate = HKQuery.predicateForWorkoutEffortSamplesRelated(workout: workout, activity: nil)
+  let descriptor = HKSampleQueryDescriptor(predicates: [
+    HKSamplePredicate.sample(type: sampleType, predicate: predicate)
+  ], sortDescriptors: [])
+
+  // Delete existing effort records created by this app
+  for sample in try await descriptor.result(for: store) {
+    // May not delete all records: only app-created entries can be deleted
+    try? await store.delete(sample)
+  }
+
+  // Create new effort score sample
+  let effort = HKQuantitySample(
+    type: sampleType,
+    quantity: HKQuantity(unit: .appleEffortScore(), doubleValue: score),
+    start: workout.startDate,
+    end: workout.endDate
+  )
+
+  // Relate the effort score to the workout
+  try await store.relateWorkoutEffortSample(effort, with: workout, activity: nil)
+
+  return true
+}
+
 class WorkoutProxy: HybridWorkoutProxySpec {
   func toJSON(key: String?) throws -> WorkoutSample {
     if key != nil && key?.isEmpty != true {
@@ -407,6 +458,20 @@ class WorkoutProxy: HybridWorkoutProxySpec {
   func getWorkoutRoutes() throws -> Promise<[WorkoutRoute]> {
     return Promise.async {
       return try await getSerializedWorkoutLocations(workout: self.workout)
+    }
+  }
+
+  @available(iOS 18.0, *)
+  func getWorkoutEffortScore() throws -> Promise<Double?> {
+    return Promise.async {
+      return try await getWorkoutEffortScoreInternal(workout: self.workout)
+    }
+  }
+
+  @available(iOS 18.0, *)
+  func setWorkoutEffortScore(score: Double) throws -> Promise<Bool> {
+    return Promise.async {
+      return try await setWorkoutEffortScoreInternal(workout: self.workout, score: score)
     }
   }
 }

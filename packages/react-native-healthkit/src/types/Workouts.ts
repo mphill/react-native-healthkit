@@ -280,3 +280,18 @@ export interface WorkoutSample {
   readonly events?: readonly WorkoutEvent[]
   readonly activities?: readonly WorkoutActivity[]
 }
+
+/**
+ * Workout effort score range (1-10)
+ * @since iOS 18.0
+ */
+export type WorkoutEffortScore = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+
+/**
+ * Workout effort score options for setting effort
+ * @since iOS 18.0
+ */
+export interface WorkoutEffortOptions {
+  /** The effort score from 1 (easy) to 10 (all-out) */
+  readonly score: WorkoutEffortScore
+}

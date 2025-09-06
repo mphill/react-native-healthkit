@@ -22,6 +22,7 @@ import getMostRecentCategorySample from './utils/getMostRecentCategorySample'
 import getMostRecentQuantitySample from './utils/getMostRecentQuantitySample'
 import getMostRecentWorkout from './utils/getMostRecentWorkout'
 import getPreferredUnit from './utils/getPreferredUnit'
+import * as WorkoutEffortUtils from './utils/workoutEffort'
 
 export * from './types'
 
@@ -60,6 +61,7 @@ export {
   useIsHealthDataAvailable,
   useSources,
   useStatisticsForQuantity,
+  WorkoutEffortUtils,
 }
 
 /**
@@ -223,4 +225,5 @@ export default {
   useIsHealthDataAvailable,
   useSources,
   useStatisticsForQuantity,
+  WorkoutEffortUtils,
 }

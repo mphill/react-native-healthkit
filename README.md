@@ -152,6 +152,75 @@ Example:
   // etc..
 ```
 
+## Workout Effort Scores (iOS 18+)
+
+Starting with iOS 18, you can read and write workout effort scores to rate the intensity of workouts on a scale from 1 (very easy) to 10 (all-out). This contributes to the user's Training Load in the Fitness app.
+
+### Basic Usage
+
+```TypeScript
+import { WorkoutEffortUtils } from '@kingstinct/react-native-healthkit';
+
+// Get a workout
+const workout = await getMostRecentWorkout();
+
+// Read the effort score
+const effortScore = await WorkoutEffortUtils.getWorkoutEffortScore(workout);
+console.log(effortScore); // null if not set, or a number 1-10
+
+// Set an effort score
+await WorkoutEffortUtils.setWorkoutEffortScore(workout, 7); // Rate as "Very Hard"
+
+// Get a human-readable description
+const description = WorkoutEffortUtils.getWorkoutEffortDescription(7);
+console.log(description); // "Very Hard"
+```
+
+### Direct Workout Proxy Methods
+
+You can also use the methods directly on workout proxies:
+
+```TypeScript
+// Get effort score
+const effortScore = await workout.getWorkoutEffortScore();
+
+// Set effort score
+await workout.setWorkoutEffortScore(8);
+```
+
+### Validation and Error Handling
+
+```TypeScript
+import { WorkoutEffortUtils } from '@kingstinct/react-native-healthkit';
+
+// Validate effort score
+if (WorkoutEffortUtils.isValidWorkoutEffortScore(score)) {
+  await WorkoutEffortUtils.setWorkoutEffortScore(workout, score);
+} else {
+  console.error('Invalid effort score. Must be 1-10.');
+}
+
+// Handle iOS version compatibility
+try {
+  await WorkoutEffortUtils.setWorkoutEffortScore(workout, 6);
+} catch (error) {
+  if (error.message.includes('iOS 18.0 and later')) {
+    console.log('Workout effort scores require iOS 18+');
+  }
+}
+```
+
+### Permissions
+
+Workout effort scores use the `HKQuantityTypeIdentifierWorkoutEffortScore` quantity type. Make sure to request appropriate permissions:
+
+```TypeScript
+await requestAuthorization(
+  ['HKQuantityTypeIdentifierWorkoutEffortScore'], // read
+  ['HKQuantityTypeIdentifierWorkoutEffortScore']  // write
+);
+```
+
 ## Migration to 9.0.0
 
 There are a lot of under-the-hood changes in version 9.0.0, some of them are breaking (although I've tried to reduce it as much as possible).
