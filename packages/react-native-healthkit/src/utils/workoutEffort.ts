@@ -6,7 +6,9 @@ import type { WorkoutEffortScore } from '../types/Workouts'
  * @param score - The score to validate
  * @returns true if the score is valid, false otherwise
  */
-export const isValidWorkoutEffortScore = (score: number): score is WorkoutEffortScore => {
+export const isValidWorkoutEffortScore = (
+  score: number,
+): score is WorkoutEffortScore => {
   return Number.isInteger(score) && score >= 1 && score <= 10
 }
 
@@ -16,12 +18,17 @@ export const isValidWorkoutEffortScore = (score: number): score is WorkoutEffort
  * @returns Promise<number | null> - The effort score or null if not available/set
  * @since iOS 18.0
  */
-export const getWorkoutEffortScore = async (workout: WorkoutProxy): Promise<number | null> => {
+export const getWorkoutEffortScore = async (
+  workout: WorkoutProxy,
+): Promise<WorkoutEffortScore | null> => {
   try {
     return await workout.getWorkoutEffortScore()
   } catch (error) {
     // If the method is not available (iOS < 18), return null
-    if (error instanceof Error && error.message.includes('unrecognized selector')) {
+    if (
+      error instanceof Error &&
+      error.message.includes('unrecognized selector')
+    ) {
       return null
     }
     throw error
@@ -50,7 +57,10 @@ export const setWorkoutEffortScore = async (
     return await workout.setWorkoutEffortScore(score)
   } catch (error) {
     // If the method is not available (iOS < 18), throw a more descriptive error
-    if (error instanceof Error && error.message.includes('unrecognized selector')) {
+    if (
+      error instanceof Error &&
+      error.message.includes('unrecognized selector')
+    ) {
       throw new Error(
         'Workout effort scores are only available on iOS 18.0 and later. Please check the iOS version before using this feature.',
       )
@@ -64,7 +74,9 @@ export const setWorkoutEffortScore = async (
  * @param score - The effort score (1-10)
  * @returns A descriptive string for the effort level
  */
-export const getWorkoutEffortDescription = (score: WorkoutEffortScore): string => {
+export const getWorkoutEffortDescription = (
+  score: WorkoutEffortScore,
+): string => {
   const descriptions: Record<WorkoutEffortScore, string> = {
     1: 'Very Easy',
     2: 'Easy',
@@ -77,7 +89,7 @@ export const getWorkoutEffortDescription = (score: WorkoutEffortScore): string =
     9: 'Maximum Effort',
     10: 'All-Out',
   }
-  
+
   return descriptions[score]
 }
 

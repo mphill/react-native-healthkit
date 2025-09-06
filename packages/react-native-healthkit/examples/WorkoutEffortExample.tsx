@@ -1,6 +1,7 @@
 import {
   getMostRecentWorkout,
   requestAuthorization,
+  type WorkoutEffortScore,
 } from '@kingstinct/react-native-healthkit'
 import type { WorkoutProxy } from '@kingstinct/react-native-healthkit/specs/WorkoutProxy.nitro'
 import {
@@ -19,7 +20,9 @@ import { Alert, Button, StyleSheet, Text, View } from 'react-native'
  */
 export const WorkoutEffortExample: React.FC = () => {
   const [workout, setWorkout] = useState<WorkoutProxy | null>(null)
-  const [effortScore, setEffortScore] = useState<number | null>(null)
+  const [effortScore, setEffortScore] = useState<WorkoutEffortScore | null>(
+    null,
+  )
   const [loading, setLoading] = useState(false)
   const [hasPermissions, setHasPermissions] = useState(false)
 
@@ -95,7 +98,7 @@ export const WorkoutEffortExample: React.FC = () => {
       setEffortScore(score)
       Alert.alert(
         'Success',
-        `Workout effort set to ${score} (${getWorkoutEffortDescription(score as any)})`,
+        `Workout effort set to ${score} (${getWorkoutEffortDescription(score)})`,
       )
     } catch (error) {
       console.error('Failed to set effort score:', error)
@@ -162,7 +165,8 @@ export const WorkoutEffortExample: React.FC = () => {
             <View style={styles.effortInfo}>
               <Text style={styles.effortText}>
                 Current Effort Score: {effortScore} (
-                {getWorkoutEffortDescription(effortScore as any)})
+                {getWorkoutEffortDescription(effortScore as WorkoutEffortScore)}
+                )
               </Text>
             </View>
           ) : (

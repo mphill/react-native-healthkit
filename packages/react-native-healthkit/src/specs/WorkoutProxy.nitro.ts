@@ -1,6 +1,7 @@
 import type { HybridObject } from 'react-native-nitro-modules'
 import type {
   LocationForSaving,
+  WorkoutEffortScore,
   WorkoutPlan,
   WorkoutRoute,
   WorkoutSample,
@@ -19,7 +20,7 @@ export interface WorkoutProxy
    * @returns Promise<number | null> - The effort score (1-10) or null if not set
    * @since iOS 18.0
    */
-  getWorkoutEffortScore(): Promise<number | null>
+  getWorkoutEffortScore(): Promise<WorkoutEffortScore | null>
 
   /**
    * Set the workout effort score for this workout (iOS 18+)
